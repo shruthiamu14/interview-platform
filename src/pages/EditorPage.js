@@ -8,6 +8,7 @@ import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 
 const EditorPage = () => {
     const socketRef = useRef(null);
+    const codeRef = useRef(null);
     const location = useLocation();
     const { roomId } = useParams();
     const reactNavigator = useNavigate();
@@ -32,16 +33,21 @@ const EditorPage = () => {
             });
 
             // Listen for joined event
-            socketRef.current.on(
-                ACTIONS.JOINED,
-                ({ clients, username, socketId }) => {
-                    if (username !== location.state?.username) {
-                        toast.success(`${username} joined the room.`);
-                        console.log(`${username} joined`);
-                    }
-                    setClients(clients);
-                }
-            );
+           // Inside the useEffect hook in src/pages/EditorPage.js
+socketRef.current.on(ACTIONS.JOINED, ({ clients, username, socketId }) => {
+    if (username !== location.state?.username) {
+        toast.success(`${username} joined the room.`);
+        console.log(`${username} joined`);
+    }
+    setClients(clients);
+    // Only send the current code to the newly joined client
+    if (codeRef.current) {
+        socketRef.current.emit(ACTIONS.SYNC_CODE, {
+            code: codeRef.current,
+            socketId,
+        });
+    }
+});
 
             // Listen for disconnected
             socketRef.current.on(
@@ -105,7 +111,7 @@ const EditorPage = () => {
                 <button className='btn leaveBtn'onClick={leaveRoom} >Leave</button>
             </div>
             <div className='editorWrap'>
-                <Editor socketRef={socketRef} roomId={roomId} />
+                <Editor socketRef={socketRef} roomId={roomId} onCodeChange={(code) => {codeRef.current=code;}} />
             </div>
         </div>
     );

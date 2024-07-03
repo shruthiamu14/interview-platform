@@ -6,7 +6,7 @@ import { oneDark } from "@codemirror/theme-one-dark";
 import { basicSetup } from "codemirror";
 import ACTIONS from '../Actions';
 
-const Editor = ({ socketRef, roomId }) => {
+const Editor = ({ socketRef, roomId, onCodeChange }) => {
     const editorRef = useRef(null);
     const viewRef = useRef(null);
 
@@ -22,6 +22,7 @@ const Editor = ({ socketRef, roomId }) => {
                         if (update.docChanged) {
                             const code = update.state.doc.toString();
                             console.log('Code changed:', code);
+                            onCodeChange(code);
                             if (socketRef.current) {
                                 console.log('Emitting code change');
                                 socketRef.current.emit(ACTIONS.CODE_CHANGE, {
@@ -52,11 +53,11 @@ const Editor = ({ socketRef, roomId }) => {
             const view = viewRef.current;
             if (view) {
                 const currentDoc = view.state.doc.toString();
+                // Only apply the update if the code is actually different to avoid unnecessary re-renders
                 if (code !== currentDoc) {
-                    const transaction = view.state.update({
+                    view.dispatch({
                         changes: { from: 0, to: currentDoc.length, insert: code }
                     });
-                    view.update([transaction]);
                 }
             }
         };
@@ -66,7 +67,7 @@ const Editor = ({ socketRef, roomId }) => {
             socket.on(ACTIONS.CODE_CHANGE, handleCodeChange);
             return () => socket.off(ACTIONS.CODE_CHANGE, handleCodeChange);
         }
-    }, [socketRef.current]);
+    }, [socketRef.current]); // Make sure to depend on socketRef.current to properly handle updates
 
     return <div ref={editorRef} style={{ height: "500px" }} />;
 };

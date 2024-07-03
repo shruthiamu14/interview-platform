@@ -48,25 +48,25 @@ const Editor = ({ socketRef, roomId }) => {
     }, [socketRef, roomId]);
 
     useEffect(() => {
-        if (socketRef.current) {
-            const handleCodeChange = ({ code }) => {
-                const view = viewRef.current;
-                console.log('Received code change:', code);
-                if (view && code !== view.state.doc.toString()) {
-                    console.log('Updating editor with new code');
-                    view.dispatch({
-                        changes: { from: 0, to: view.state.doc.length, insert: code },
+        const handleCodeChange = ({ code }) => {
+            const view = viewRef.current;
+            if (view) {
+                const currentDoc = view.state.doc.toString();
+                if (code !== currentDoc) {
+                    const transaction = view.state.update({
+                        changes: { from: 0, to: currentDoc.length, insert: code }
                     });
+                    view.update([transaction]);
                 }
-            };
-
-            socketRef.current.on(ACTIONS.CODE_CHANGE, handleCodeChange);
-
-            return () => {
-                socketRef.current.off(ACTIONS.CODE_CHANGE, handleCodeChange);
-            };
+            }
+        };
+    
+        const socket = socketRef.current;
+        if (socket) {
+            socket.on(ACTIONS.CODE_CHANGE, handleCodeChange);
+            return () => socket.off(ACTIONS.CODE_CHANGE, handleCodeChange);
         }
-    }, [socketRef]);
+    }, [socketRef.current]);
 
     return <div ref={editorRef} style={{ height: "500px" }} />;
 };

@@ -16,14 +16,21 @@ app.use((req, res, next) => {
 const userSocketMap = {};
 
 function getAllConnectedClients(roomId) {
-    return Array.from(io.sockets.adapter.rooms.get(roomId) || []).map(
+    const clients = Array.from(io.sockets.adapter.rooms.get(roomId) || []).map(
         (socketId) => {
             return {
-            socketId,
-            username: userSocketMap[socketId],
+                socketId,
+                username: userSocketMap[socketId],
             };
         }
     );
+    // Create a map to ensure uniqueness based on username
+    const uniqueClients = new Map();
+    clients.forEach(client => {
+        uniqueClients.set(client.username, client);
+    });
+    // Return only unique clients
+    return Array.from(uniqueClients.values());
 }
 
 io.on('connection', (socket) => {

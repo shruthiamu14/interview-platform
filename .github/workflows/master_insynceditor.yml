@@ -58,7 +58,7 @@ jobs:
           name: node-app
 
       - name: Unzip artifact for deployment
-        run: unzip release.zip -d $GITHUB_WORKSPACE
+        run: unzip release.zip -d $GITHUB_WORKSPACE/release
 
       - name: Login to Azure
         uses: azure/login@v1

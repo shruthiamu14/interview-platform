@@ -49,7 +49,7 @@ jobs:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write #This is required for requesting the JWT
+      id-token: write # This is required for requesting the JWT
 
     steps:
       - name: Download artifact from build job
@@ -58,8 +58,8 @@ jobs:
           name: node-app
 
       - name: Unzip artifact for deployment
-        run: unzip release.zip
-      
+        run: unzip release.zip -d $GITHUB_WORKSPACE
+
       - name: Login to Azure
         uses: azure/login@v1
         with:
@@ -73,5 +73,14 @@ jobs:
         with:
           app-name: 'insynceditor'
           slot-name: 'Production'
-          package: .
-          
+          package: $GITHUB_WORKSPACE/release
+
+      - name: Install npm dependencies on Azure
+        run: |
+          cd $GITHUB_WORKSPACE/release
+          npm install
+
+      - name: Start the Node.js server
+        run: |
+          cd $GITHUB_WORKSPACE/release
+          npm start

@@ -11,16 +11,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js version
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20.x'
+          node-version: '14' # Adjust Node.js version as per your requirement
 
-      - name: npm install, build, and test
-        env:
-          CI: false
+      - name: Install dependencies and build
         run: |
           npm install
           npm run build
@@ -36,7 +35,7 @@ jobs:
           zip -r ../release.zip .
         shell: bash
 
-      - name: Upload artifact for deployment job
+      - name: Upload artifact for deployment
         uses: actions/upload-artifact@v3
         with:
           name: node-app
@@ -58,7 +57,7 @@ jobs:
           name: node-app
 
       - name: Unzip artifact for deployment
-        run: unzip release.zip -d $GITHUB_WORKSPACE/release
+        run: unzip $GITHUB_WORKSPACE/node-app.zip -d $GITHUB_WORKSPACE/release
 
       - name: Login to Azure
         uses: azure/login@v1
@@ -67,7 +66,7 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B618E2810B014737B12601B921B9EE97 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_2291750CDDA546A4A7BBEF6C68760FE0 }}
 
-      - name: 'Deploy to Azure Web App'
+      - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
@@ -80,7 +79,7 @@ jobs:
           cd $GITHUB_WORKSPACE/release
           npm install
 
-      - name: Start the Node.js server
+      - name: Start the Node.js server on Azure
         run: |
           cd $GITHUB_WORKSPACE/release
           npm start

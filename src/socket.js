@@ -1,5 +1,5 @@
 import {io} from 'socket.io-client';
-
+const SOCKET_URL = "http://localhost:10000";
 export const initSocket = async () => {
     const options = {
       'for new connection': true,
@@ -7,5 +7,7 @@ export const initSocket = async () => {
       timeout: 10000,
       transports: ['websocket'],
     };
-    return io(process.env.REACT_APP_BACKEND_URL, options);
+    return io(SOCKET_URL, options);
   };
+
+  

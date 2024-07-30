@@ -24,12 +24,10 @@ function getAllConnectedClients(roomId) {
             };
         }
     );
-    // Create a map to ensure uniqueness based on username
     const uniqueClients = new Map();
     clients.forEach(client => {
         uniqueClients.set(client.username, client);
     });
-    // Return only unique clients
     return Array.from(uniqueClients.values());
 }
 
@@ -49,10 +47,15 @@ io.on('connection', (socket) => {
         });
     });
 
+    socket.on(ACTIONS.SIGNAL, (data) => {
+        console.log('Received signal:', data);
+        io.to(data.socketId).emit(ACTIONS.SIGNAL, data);
+    });
+
     socket.on(ACTIONS.CODE_CHANGE, ({ roomId, code }) => {
         socket.in(roomId).emit(ACTIONS.CODE_CHANGE, { code });
     });
-    
+
     socket.on(ACTIONS.SYNC_CODE, ({ socketId, code }) => {
         io.to(socketId).emit(ACTIONS.CODE_CHANGE, { code });
     });
